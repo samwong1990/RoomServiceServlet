@@ -1,4 +1,4 @@
-package customClassifier;
+package classifierImplementation;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,5 +1,7 @@
 package dao;
 
+import helper.Deserializer;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -19,6 +21,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 import com.google.common.collect.Sets;
+import com.samwong.hk.roomservice.api.commons.dataFormat.AuthenticationDetails;
+import com.samwong.hk.roomservice.api.commons.dataFormat.TrainingData;
+import com.samwong.hk.roomservice.api.commons.dataFormat.WifiInformation;
 
 public class SQLiteBackedClassifierDAO implements ClassifierDAO {
 	private static Logger log = Logger
@@ -84,16 +89,33 @@ public class SQLiteBackedClassifierDAO implements ClassifierDAO {
 		return Sets.newHashSet(instances);
 	}
 
-	public void deleteClassification(Instance instance) {
-		String deleteSql = "DELETE FROM instances where room=:room AND features=:serializedFeatures;";
-		SqlParameterSource namedParameters = new MapSqlParameterSource("room",
-				instance.getClass().toString()).addValue("serializedFeatures",
-				serializedSparseInstance(instance));
+	public void deleteClassification(Instance instance,
+			AuthenticationDetails auenticationDetails) {
+		// TODO authenticationDetails not used
+		String deleteSql = "DELETE FROM instances WHERE deviceWifiMacAddress=:deviceWifiMacAddress AND deviceInstallID:=deviceInstallID AND room=:room AND features=:serializedFeatures;";
+		SqlParameterSource namedParameters = new MapSqlParameterSource()
+		.addValue("deviceWifiMacAddress",
+				auenticationDetails.getDeviceWifiMacAddress())
+		.addValue("deviceInstallID",
+				auenticationDetails.getDeviceInstallID())
+		.addValue("room", instance.getClass().toString())
+				.addValue("serializedFeatures",
+						serializedSparseInstance(instance));
 		this.namedParameterJdbcTemplate.update(deleteSql, namedParameters);
 	}
 
 	@Override
-	public void saveInstance(Instance instance, String room) {
+	public void saveInstances(TrainingData trainingData, AuthenticationDetails authenticationDetails) {
+		// TODO authenticationDetails not used
+		for (WifiInformation wifiInformation : trainingData.getDatapoints()) {
+			saveInstance(Deserializer.wifiInformationToInstance(
+					wifiInformation, this), trainingData.getRoom(), authenticationDetails);
+		}
+	}
+
+	@Override
+	public void saveInstance(Instance instance, String room, AuthenticationDetails authenticationDetails) {
+		// TODO authenticationDetails not used
 		String insertSql = "INSERT INTO instances (room, features) VALUES (:room, :serializedFeatures);";
 		SqlParameterSource namedParameters = new MapSqlParameterSource("room",
 				room).addValue("serializedFeatures",
@@ -113,7 +135,8 @@ public class SQLiteBackedClassifierDAO implements ClassifierDAO {
 	}
 
 	@Override
-	public List<String> getRoomList() {
+	public List<String> getRoomList(AuthenticationDetails authenticationDetails) {
+		// TODO authenticationDetails not used
 		List<String> roomList = this.namedParameterJdbcTemplate
 				.getJdbcOperations().query(
 						"SELECT DISTINCT room FROM instances;",
@@ -125,4 +148,5 @@ public class SQLiteBackedClassifierDAO implements ClassifierDAO {
 						});
 		return roomList;
 	}
+
 }

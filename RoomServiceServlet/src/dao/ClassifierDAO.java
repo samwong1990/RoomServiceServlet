@@ -6,6 +6,9 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
+import com.samwong.hk.roomservice.api.commons.dataFormat.AuthenticationDetails;
+import com.samwong.hk.roomservice.api.commons.dataFormat.TrainingData;
+
 import net.sf.javaml.core.Instance;
 
 public interface ClassifierDAO {
@@ -16,11 +19,13 @@ public interface ClassifierDAO {
 	
 	Set<Instance> getAllInstances();
 	
-	void saveInstance(Instance instance, String roomArray);
+	void saveInstance(Instance instance, String room, AuthenticationDetails authenticationDetails);
 	
-	void deleteClassification(Instance wifiInformationToInstance);
+	void deleteClassification(Instance wifiInformationToInstance, AuthenticationDetails auenticationDetails);
 	
 	public String serializedSparseInstance(Instance instance);
 
-	List<String> getRoomList();
+	List<String> getRoomList(AuthenticationDetails auenticationDetails);
+
+	void saveInstances(TrainingData trainingData, AuthenticationDetails authenticationDetails);
 }
