@@ -1,6 +1,7 @@
 package helper;
 
 import java.util.Map;
+import java.util.TreeMap;
 
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.core.SparseInstance;
@@ -86,10 +87,15 @@ public class Deserializer {
 
 	public static Map<String, String> getSpecialRequestsForClassifier(
 			Map<String, String[]> parameters) {
-		String json = getSingleParameter(parameters,
-				ParameterKey.SPECIAL_REQUESTS_FOR_SPECFIC_CLASSIFIER);
+		String json;
+		try{
+			json = getSingleParameter(parameters,
+					ParameterKey.SPECIAL_REQUESTS_FOR_SPECFIC_CLASSIFIER);
+		}catch(IllegalArgumentException e){
+			// None specified, return an empty map
+			return new TreeMap<String, String>();
+		}
 		log.info("Received json of AuenticationDetails:" + json);
-		if(json == null) return null;
 		return new Gson().fromJson(json, new TypeToken<Map<String,String>>() {
 		}.getType());
 	}

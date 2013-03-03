@@ -1,6 +1,7 @@
 package dao;
 
 import helper.Deserializer;
+import helper.MapUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -21,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import net.sf.javaml.classification.AbstractClassifier;
 import net.sf.javaml.core.Instance;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
@@ -84,9 +86,8 @@ public class ClassifierDAOServlet extends HttpServlet {
 	@Override
 	protected void doDelete(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		log.info("Received DELETE request with params:"
-				+ request.getParameterMap());
 		Map<String, String[]> parameters = request.getParameterMap();
+		log.info("Received DELETE request with params:" + MapUtils.printParameterMap(parameters));
 		String operation = Deserializer.getSingleParameter(parameters,
 				ParameterKey.OPERATION);
 		PrintWriter out = response.getWriter();
@@ -129,20 +130,48 @@ public class ClassifierDAOServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		Map<String, String[]> parameters = request.getParameterMap();
-		log.info("Received GET request with params:" + parameters);
+		log.info("Received GET request with params:" + MapUtils.printParameterMap(parameters));
 
-		String operation = Deserializer.getSingleParameter(parameters,
-				ParameterKey.OPERATION);
-		AuthenticationDetails auenticationDetails = Deserializer
-				.getAuenticationDetails(parameters);
-		log.info(auenticationDetails);
 		PrintWriter out = response.getWriter();
 		try {
+			String operation = Deserializer.getSingleParameter(parameters,
+					ParameterKey.OPERATION);
+			AuthenticationDetails auenticationDetails = Deserializer
+					.getAuenticationDetails(parameters);
+			log.info(auenticationDetails);
+
 			if (operation.equals(Operation.GET_LIST_OF_ROOMS.toString())) {
-				List<String> roomList = classifierDAO.getRoomList(auenticationDetails);
+				List<String> roomList = classifierDAO
+						.getRoomList(auenticationDetails);
 				out.print(new Gson().toJson(roomList));
 				return;
-			} else if (operation.equals(Operation.CLASSIFY.toString())) {
+			}
+		} catch (Exception e) {
+			Response errorResponse = new Response().withReturnCode(
+					ReturnCode.ILLEGAL_ARGUMENT).withExplanation(e.toString());
+			out.print(new Gson().toJson(errorResponse));
+			return;
+		} finally {
+			out.close();
+		}
+
+	}
+
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		Map<String, String[]> parameters = request.getParameterMap();
+		log.info("Received POST request with params:" + MapUtils.printParameterMap(parameters));
+
+		PrintWriter out = response.getWriter();
+		try {
+			String operation = Deserializer.getSingleParameter(parameters,
+					ParameterKey.OPERATION);
+			AuthenticationDetails auenticationDetails = Deserializer
+					.getAuenticationDetails(parameters);
+			log.info(auenticationDetails);
+
+			if (operation.equals(Operation.CLASSIFY.toString())) {
 				ResponseWithReports responseWithReports = new ResponseWithReports();
 
 				WifiInformation observation = Deserializer
@@ -178,27 +207,26 @@ public class ClassifierDAOServlet extends HttpServlet {
 					out.print(new Gson().toJson(responseWithReports));
 					return;
 				}
-			} else {
-				out.println("Hello! You have reached the RoomService server. Problems? sam.wong09@imperial.ac.uk.");
-				return;
 			}
+		} catch (Exception e) {
+			Response errorResponse = new ResponseWithReports()
+			.withReturnCode(ReturnCode.ILLEGAL_ARGUMENT).withExplanation(e.toString());
+			out.print(new Gson().toJson(errorResponse));
+			return;
 		} finally {
 			out.close();
 		}
-
 	}
-
+	
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
 	protected void doPut(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		log.info("Received PUT request with params:"
-				+ request.getParameterMap());
-		// super.doPost(request, response);
 		Map<String, String[]> parameters = request.getParameterMap();
-
+		log.info("Received PUT request with params:" + MapUtils.printParameterMap(parameters));
+		
 		// Detect intent, it is either reporting a correct classification or
 		// trying to contribute training data
 		// Two ways, either by Report, or by WifiInformation
@@ -232,7 +260,8 @@ public class ClassifierDAOServlet extends HttpServlet {
 				TrainingData trainingData = InstanceFriendlyGson.gson.fromJson(
 						json, new TypeToken<TrainingData>() {
 						}.getType());
-				classifierDAO.saveInstances(trainingData, authenticationDetails);
+				classifierDAO
+						.saveInstances(trainingData, authenticationDetails);
 				out.print(returnJson(ReturnCode.OK,
 						"Training data has been saved"));
 				return;
