@@ -22,7 +22,6 @@ import javax.servlet.http.HttpServletResponse;
 import net.sf.javaml.classification.AbstractClassifier;
 import net.sf.javaml.core.Instance;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
@@ -36,6 +35,7 @@ import com.samwong.hk.roomservice.api.commons.dataFormat.AuthenticationDetails;
 import com.samwong.hk.roomservice.api.commons.dataFormat.Report;
 import com.samwong.hk.roomservice.api.commons.dataFormat.Response;
 import com.samwong.hk.roomservice.api.commons.dataFormat.ResponseWithReports;
+import com.samwong.hk.roomservice.api.commons.dataFormat.RoomStatistic;
 import com.samwong.hk.roomservice.api.commons.dataFormat.TrainingData;
 import com.samwong.hk.roomservice.api.commons.dataFormat.WifiInformation;
 import com.samwong.hk.roomservice.api.commons.helper.InstanceFriendlyGson;
@@ -53,7 +53,7 @@ import com.samwong.hk.roomservice.api.commons.parameterEnums.ReturnCode;
  * 
  */
 
-@WebServlet("/ClassifierDAOServlet")
+@WebServlet("/api")
 public class ClassifierDAOServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static Logger log = Logger.getLogger(ClassifierDAOServlet.class);
@@ -157,6 +157,8 @@ public class ClassifierDAOServlet extends HttpServlet {
 
 	}
 
+	/* Shoved upload batch training from PUT to POST because there is a limit on url length.
+	 */
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -167,9 +169,9 @@ public class ClassifierDAOServlet extends HttpServlet {
 		try {
 			String operation = Deserializer.getSingleParameter(parameters,
 					ParameterKey.OPERATION);
-			AuthenticationDetails auenticationDetails = Deserializer
+			AuthenticationDetails authenticationDetails = Deserializer
 					.getAuenticationDetails(parameters);
-			log.info(auenticationDetails);
+			log.info(authenticationDetails);
 
 			if (operation.equals(Operation.CLASSIFY.toString())) {
 				ResponseWithReports responseWithReports = new ResponseWithReports();
@@ -195,7 +197,7 @@ public class ClassifierDAOServlet extends HttpServlet {
 
 					List<Report> result = new ArrayList<Report>();
 					result.addAll(oracle.classify(instance, classifier,
-							auenticationDetails, specialRequests));
+							authenticationDetails, specialRequests));
 					responseWithReports.withReports(result);
 
 					out.print(new Gson().toJson(responseWithReports));
@@ -207,6 +209,19 @@ public class ClassifierDAOServlet extends HttpServlet {
 					out.print(new Gson().toJson(responseWithReports));
 					return;
 				}
+			} else if (operation.equals(Operation.UPLOAD_TRAINING_DATA
+					.toString())) {
+				// Process the batch of training data
+				String json = Deserializer.getSingleParameter(parameters,
+						ParameterKey.BATCH_TRAINING_DATA);
+				TrainingData trainingData = InstanceFriendlyGson.gson.fromJson(
+						json, new TypeToken<TrainingData>() {
+						}.getType());
+				classifierDAO
+						.saveInstances(trainingData, authenticationDetails);
+				out.print(returnJson(ReturnCode.OK,
+						"Training data has been saved"));
+				return;
 			}
 		} catch (Exception e) {
 			Response errorResponse = new ResponseWithReports()
@@ -224,12 +239,12 @@ public class ClassifierDAOServlet extends HttpServlet {
 	 */
 	protected void doPut(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		Map<String, String[]> parameters = request.getParameterMap();
-		log.info("Received PUT request with params:" + MapUtils.printParameterMap(parameters));
-		
 		// Detect intent, it is either reporting a correct classification or
 		// trying to contribute training data
 		// Two ways, either by Report, or by WifiInformation
+		Map<String, String[]> parameters = request.getParameterMap();
+		log.info("Received PUT request with params:" + MapUtils.printParameterMap(parameters));
+
 		PrintWriter out = response.getWriter();
 		try {
 			String operation = Deserializer.getSingleParameter(parameters,
@@ -252,19 +267,13 @@ public class ClassifierDAOServlet extends HttpServlet {
 						authenticationDetails);
 				out.print(returnJson(ReturnCode.OK, "Instance has been saved"));
 				return;
-			} else if (operation.equals(Operation.UPLOAD_TRAINING_DATA
-					.toString())) {
-				// Process the batch of training data
-				String json = Deserializer.getSingleParameter(parameters,
-						ParameterKey.BATCH_TRAINING_DATA);
-				TrainingData trainingData = InstanceFriendlyGson.gson.fromJson(
-						json, new TypeToken<TrainingData>() {
+			} else if(operation.equals(Operation.UPLOAD_STATISTICS.toString())){
+				log.info("Saving statistics");
+				String listOfStatJson = Deserializer.getSingleParameter(parameters,
+						ParameterKey.VALIDATION_STATISTICS);
+				List<RoomStatistic> stats = new Gson().fromJson(listOfStatJson, new TypeToken<List<RoomStatistic>>() {
 						}.getType());
-				classifierDAO
-						.saveInstances(trainingData, authenticationDetails);
-				out.print(returnJson(ReturnCode.OK,
-						"Training data has been saved"));
-				return;
+				classifierDAO.saveStatistics(stats);
 			} else {
 				out.print(returnJson(ReturnCode.NO_RESPONSE,
 						"Supported Operations: UPLOAD_TRAINING_DATA & CONFIRM_VALID_CLASSIFICATION."));
@@ -275,7 +284,7 @@ public class ClassifierDAOServlet extends HttpServlet {
 			return;
 		} finally {
 			out.close();
-			log.info("POST done, connection closed, results returned");
+			log.info("put done, connection closed, results returned");
 		}
 
 	}

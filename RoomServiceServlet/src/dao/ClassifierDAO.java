@@ -7,6 +7,7 @@ import java.util.Set;
 import javax.sql.DataSource;
 
 import com.samwong.hk.roomservice.api.commons.dataFormat.AuthenticationDetails;
+import com.samwong.hk.roomservice.api.commons.dataFormat.RoomStatistic;
 import com.samwong.hk.roomservice.api.commons.dataFormat.TrainingData;
 
 import net.sf.javaml.core.Instance;
@@ -28,4 +29,6 @@ public interface ClassifierDAO {
 	List<String> getRoomList(AuthenticationDetails auenticationDetails);
 
 	void saveInstances(TrainingData trainingData, AuthenticationDetails authenticationDetails);
+
+	void saveStatistics(List<RoomStatistic> stats);
 }
