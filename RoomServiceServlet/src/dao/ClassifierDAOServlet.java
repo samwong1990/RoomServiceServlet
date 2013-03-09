@@ -274,6 +274,7 @@ public class ClassifierDAOServlet extends HttpServlet {
 				List<RoomStatistic> stats = new Gson().fromJson(listOfStatJson, new TypeToken<List<RoomStatistic>>() {
 						}.getType());
 				classifierDAO.saveStatistics(stats);
+				out.print(returnJson(ReturnCode.OK, "Saved statistics"));
 			} else {
 				out.print(returnJson(ReturnCode.NO_RESPONSE,
 						"Supported Operations: UPLOAD_TRAINING_DATA & CONFIRM_VALID_CLASSIFICATION."));
