@@ -16,21 +16,21 @@ import classifierImplementation.WeightedKNearestNeighbors;
 
 import hk.samwong.roomservice.commons.dataFormat.Report;
 
-import dao.ClassifierDAO;
+import dao.FingerprintsDAO;
 
 public class WKNN implements CustomClassifier {
 	private static Logger log = Logger.getLogger(WKNN.class);
 
-	private ClassifierDAO classifierDAO;
+	private FingerprintsDAO fingerprintsDAO;
 	
-	public WKNN(ClassifierDAO classifierDAO){
-		this.classifierDAO = classifierDAO;
+	public WKNN(FingerprintsDAO fingerprintsDAO){
+		this.fingerprintsDAO = fingerprintsDAO;
 	}
 	
 	public Report getClassification(Instance instance, Map<String,String> specialRequest) {
 		// import all known instances
 		Dataset dataset = new DefaultDataset();
-		dataset.addAll(classifierDAO.getAllInstances());
+		dataset.addAll(fingerprintsDAO.getAllInstances());
 		// train a KNN model
 		net.sf.javaml.classification.Classifier wknn = new WeightedKNearestNeighbors(
 				5);

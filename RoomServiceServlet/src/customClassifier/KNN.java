@@ -15,22 +15,22 @@ import org.apache.log4j.Logger;
 
 import hk.samwong.roomservice.commons.dataFormat.Report;
 
-import dao.ClassifierDAO;
+import dao.FingerprintsDAO;
 
 public class KNN implements CustomClassifier {
 	private static Logger log = Logger.getLogger(KNN.class);
 
-	private ClassifierDAO classifierDAO;
+	private FingerprintsDAO fingerprintsDAO;
 
-	public KNN(ClassifierDAO classifierDAO){
-		this.classifierDAO = classifierDAO;
+	public KNN(FingerprintsDAO fingerprintsDAO){
+		this.fingerprintsDAO = fingerprintsDAO;
 	}
 
 	@Override
 	public Report getClassification(Instance instance, Map<String,String> specialRequest) {
 		// import all known instances
 		Dataset dataset = new DefaultDataset();
-		dataset.addAll(classifierDAO.getAllInstances());
+		dataset.addAll(fingerprintsDAO.getAllInstances());
 		// train a KNN model
 		net.sf.javaml.classification.Classifier knn = new KNearestNeighbors(5);
 		knn.buildClassifier(dataset);

@@ -28,9 +28,9 @@ import hk.samwong.roomservice.commons.dataFormat.RoomStatistic;
 import hk.samwong.roomservice.commons.dataFormat.TrainingData;
 import hk.samwong.roomservice.commons.dataFormat.WifiInformation;
 
-public class SQLiteBackedClassifierDAO implements ClassifierDAO {
+public class SQLiteBackedFingerprintsDAO implements FingerprintsDAO {
 	private static Logger log = Logger
-			.getLogger(SQLiteBackedClassifierDAO.class);
+			.getLogger(SQLiteBackedFingerprintsDAO.class);
 
 	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 

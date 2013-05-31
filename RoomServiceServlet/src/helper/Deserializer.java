@@ -15,7 +15,7 @@ import hk.samwong.roomservice.commons.dataFormat.BssidStrength;
 import hk.samwong.roomservice.commons.dataFormat.WifiInformation;
 import hk.samwong.roomservice.commons.parameterEnums.ParameterKey;
 
-import dao.ClassifierDAO;
+import dao.FingerprintsDAO;
 
 /**
  * An helper to deserialize objects from json. Assumes parameter map uses the
@@ -32,11 +32,11 @@ public class Deserializer {
 	 * by looking up corresponding index for a given BSSID (MAC address).
 	 * 
 	 * @param observations
-	 * @param classifierDAO
+	 * @param fingerprintsDAO
 	 * @return
 	 */
 	public static Instance wifiInformationToInstance(
-			WifiInformation observation, ClassifierDAO classifierDAO) {
+			WifiInformation observation, FingerprintsDAO fingerprintsDAO) {
 
 		// Each column (or index) refers to one BSSID's signal strength.
 		// A bit awkward but feature must be of type Double. This is the most
@@ -48,7 +48,7 @@ public class Deserializer {
 
 		Instance instance = new SparseInstance(-1, -100);
 		for (BssidStrength bssidStrength : observation.getSignalStrengths()) {
-			int index = classifierDAO.getIndexByBSSID(bssidStrength.getBSSID());
+			int index = fingerprintsDAO.getIndexByBSSID(bssidStrength.getBSSID());
 			instance.put(index, bssidStrength.getLevel() + 0.0);
 		}
 		return instance;

@@ -12,7 +12,7 @@ import hk.samwong.roomservice.commons.dataFormat.TrainingData;
 
 import net.sf.javaml.core.Instance;
 
-public interface ClassifierDAO {
+public interface FingerprintsDAO {
 
 	void setDataSource(DataSource singleConnectionDataSource);
 	

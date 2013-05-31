@@ -15,18 +15,18 @@ import hk.samwong.roomservice.commons.parameterEnums.Classifier;
 import customClassifier.CustomClassifier;
 import customClassifier.KNN;
 import customClassifier.WKNN;
-import dao.ClassifierDAO;
+import dao.FingerprintsDAO;
 
 public class SimpleOracle implements Oracle {
 
-	private ClassifierDAO classifierDAO;
+	private FingerprintsDAO fingerprintsDAO;
 	private Map<Classifier, CustomClassifier> classifierMap;
 	
-	public SimpleOracle(ClassifierDAO server) {
-		this.classifierDAO = server;
+	public SimpleOracle(FingerprintsDAO server) {
+		this.fingerprintsDAO = server;
 		classifierMap = new HashMap<Classifier, CustomClassifier>();
-		classifierMap.put(Classifier.WKNN, new WKNN(classifierDAO));
-		classifierMap.put(Classifier.KNN, new KNN(classifierDAO));
+		classifierMap.put(Classifier.WKNN, new WKNN(fingerprintsDAO));
+		classifierMap.put(Classifier.KNN, new KNN(fingerprintsDAO));
 	}
 
 	@Override

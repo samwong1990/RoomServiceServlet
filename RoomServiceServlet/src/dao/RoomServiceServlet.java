@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
@@ -45,37 +46,39 @@ import hk.samwong.roomservice.commons.parameterEnums.ParameterKey;
 import hk.samwong.roomservice.commons.parameterEnums.ReturnCode;
 
 /**
- * Servlet implementation class ClassifierDAOServlet
- */
-
-/**
+ * Servlet that deals with all the fingerprint queries.
+ * doDelete: 	for undoing client's reinforcement feedback.
+ * doGet:		returns the list of known rooms in the database. TODO. only return rooms around a geolocation
+ * doPost:		for uploading training data.
+ * doPut		for client's reinforcement feedback. ie "Yes I am indeed in roomX". Also a temporary solution for receiving validation data 
  * @author wongsam
  * 
  */
 
 @WebServlet("/api")
-public class ClassifierDAOServlet extends HttpServlet {
+public class RoomServiceServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private static Logger log = Logger.getLogger(ClassifierDAOServlet.class);
-	private ClassifierDAO classifierDAO;
+	private static Logger log = Logger.getLogger(RoomServiceServlet.class);
+	private FingerprintsDAO fingerprintsDAO;
 	private Oracle oracle;
 
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
-	public ClassifierDAOServlet() {
+	public RoomServiceServlet() {
 		super();
-		classifierDAO = new SQLiteBackedClassifierDAO();
+		fingerprintsDAO = new SQLiteBackedFingerprintsDAO();
 		String dbUrl = "jdbc:sqlite:" + System.getProperty("catalina.base")
 				+ "/test.sqlite";
 		log.info(dbUrl);
 		try {
-			classifierDAO.setDataSource(new SingleConnectionDataSource(
+			fingerprintsDAO.setDataSource(new SingleConnectionDataSource(
 					org.sqlite.JDBC.createConnection(dbUrl, new Properties()),
 					true));
-			oracle = new SimpleOracle(classifierDAO);
+			oracle = new SimpleOracle(fingerprintsDAO);
 		} catch (SQLException e) {
 			log.fatal("Failed to create connection to " + dbUrl, e);
+			throw new MissingResourceException("JDBC createConnection failed.", fingerprintsDAO.toString(), dbUrl);
 		}
 
 		// Setup all classifiers
@@ -95,7 +98,7 @@ public class ClassifierDAOServlet extends HttpServlet {
 			/* Return if there is no DELETE parameter */
 			if (!operation.equals(Operation.DELETE.toString())) {
 				log.warn("Erroneous DELETE request: " + parameters);
-				out.print(returnJson(
+				out.print(jsonFeedback(
 						ReturnCode.NO_RESPONSE,
 						"You didn't explicitly say you want to perform a DELETE. To be on the safe side, this request has been ignored."));
 				return;
@@ -104,18 +107,18 @@ public class ClassifierDAOServlet extends HttpServlet {
 				WifiInformation wifiInformation = Deserializer
 						.getDejsonifiedWifiInformation(parameters);
 				Instance instance = Deserializer.wifiInformationToInstance(
-						wifiInformation, classifierDAO);
+						wifiInformation, fingerprintsDAO);
 				instance.setClassValue(parameters.get(ParameterKey.ROOM
 						.toString())[0]);
 				AuthenticationDetails auenticationDetails = Deserializer
 						.getAuenticationDetails(parameters);
-				classifierDAO.deleteClassification(instance,
+				fingerprintsDAO.deleteClassification(instance,
 						auenticationDetails);
-				out.print(returnJson(ReturnCode.OK, "DELETE has been completed"));
+				out.print(jsonFeedback(ReturnCode.OK, "DELETE has been completed"));
 			} catch (Exception e) {
 				log.error("Failed to perform DELETE with param map: "
 						+ parameters, e);
-				out.print(returnJson(ReturnCode.UNRECOVERABLE_EXCEPTION,
+				out.print(jsonFeedback(ReturnCode.UNRECOVERABLE_EXCEPTION,
 						"Something went wrong while performing DELETE. " + e));
 			}
 		} finally {
@@ -141,7 +144,7 @@ public class ClassifierDAOServlet extends HttpServlet {
 			log.info(auenticationDetails);
 
 			if (operation.equals(Operation.GET_LIST_OF_ROOMS.toString())) {
-				List<String> roomList = classifierDAO
+				List<String> roomList = fingerprintsDAO
 						.getRoomList(auenticationDetails);
 				out.print(new Gson().toJson(roomList));
 				return;
@@ -181,7 +184,7 @@ public class ClassifierDAOServlet extends HttpServlet {
 				log.info(observation);
 
 				Instance instance = Deserializer.wifiInformationToInstance(
-						observation, classifierDAO);
+						observation, fingerprintsDAO);
 				log.info(instance);
 
 				Map<String, String> specialRequests = Deserializer
@@ -217,9 +220,9 @@ public class ClassifierDAOServlet extends HttpServlet {
 				TrainingData trainingData = InstanceFriendlyGson.gson.fromJson(
 						json, new TypeToken<TrainingData>() {
 						}.getType());
-				classifierDAO
+				fingerprintsDAO
 						.saveInstances(trainingData, authenticationDetails);
-				out.print(returnJson(ReturnCode.OK,
+				out.print(jsonFeedback(ReturnCode.OK,
 						"Training data has been saved"));
 				return;
 			}
@@ -263,9 +266,9 @@ public class ClassifierDAOServlet extends HttpServlet {
 				Instance instance = InstanceFriendlyGson.gson.fromJson(
 						instanceAsJson, new TypeToken<Instance>() {
 						}.getType());
-				classifierDAO.saveInstance(instance, room,
+				fingerprintsDAO.saveInstance(instance, room,
 						authenticationDetails);
-				out.print(returnJson(ReturnCode.OK, "Instance has been saved"));
+				out.print(jsonFeedback(ReturnCode.OK, "Instance has been saved"));
 				return;
 			} else if(operation.equals(Operation.UPLOAD_STATISTICS.toString())){
 				log.info("Saving statistics");
@@ -273,15 +276,15 @@ public class ClassifierDAOServlet extends HttpServlet {
 						ParameterKey.VALIDATION_STATISTICS);
 				List<RoomStatistic> stats = new Gson().fromJson(listOfStatJson, new TypeToken<List<RoomStatistic>>() {
 						}.getType());
-				classifierDAO.saveStatistics(stats);
-				out.print(returnJson(ReturnCode.OK, "Saved statistics"));
+				fingerprintsDAO.saveStatistics(stats);
+				out.print(jsonFeedback(ReturnCode.OK, "Saved statistics"));
 			} else {
-				out.print(returnJson(ReturnCode.NO_RESPONSE,
+				out.print(jsonFeedback(ReturnCode.NO_RESPONSE,
 						"Supported Operations: UPLOAD_TRAINING_DATA & CONFIRM_VALID_CLASSIFICATION."));
 				return;
 			}
 		} catch (IllegalArgumentException e) {
-			out.print(returnJson(ReturnCode.ILLEGAL_ARGUMENT, e.getMessage()));
+			out.print(jsonFeedback(ReturnCode.ILLEGAL_ARGUMENT, e.getMessage()));
 			return;
 		} finally {
 			out.close();
@@ -290,7 +293,7 @@ public class ClassifierDAOServlet extends HttpServlet {
 
 	}
 
-	private String returnJson(ReturnCode returnCode, String explanation) {
+	private String jsonFeedback(ReturnCode returnCode, String explanation) {
 		String json = new Gson().toJson(
 				new Response().withExplanation(explanation).withReturnCode(
 						returnCode), new TypeToken<Response>() {
