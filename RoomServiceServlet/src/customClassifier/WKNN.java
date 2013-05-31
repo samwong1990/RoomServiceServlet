@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 
 import classifierImplementation.WeightedKNearestNeighbors;
 
-import com.samwong.hk.roomservice.api.commons.dataFormat.Report;
+import hk.samwong.roomservice.commons.dataFormat.Report;
 
 import dao.ClassifierDAO;
 

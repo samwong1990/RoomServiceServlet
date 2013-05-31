@@ -10,10 +10,10 @@ import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.samwong.hk.roomservice.api.commons.dataFormat.AuthenticationDetails;
-import com.samwong.hk.roomservice.api.commons.dataFormat.BssidStrength;
-import com.samwong.hk.roomservice.api.commons.dataFormat.WifiInformation;
-import com.samwong.hk.roomservice.api.commons.parameterEnums.ParameterKey;
+import hk.samwong.roomservice.commons.dataFormat.AuthenticationDetails;
+import hk.samwong.roomservice.commons.dataFormat.BssidStrength;
+import hk.samwong.roomservice.commons.dataFormat.WifiInformation;
+import hk.samwong.roomservice.commons.parameterEnums.ParameterKey;
 
 import dao.ClassifierDAO;
 

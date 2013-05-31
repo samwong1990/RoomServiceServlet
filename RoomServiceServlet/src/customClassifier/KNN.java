@@ -13,7 +13,7 @@ import net.sf.javaml.core.Instance;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import com.samwong.hk.roomservice.api.commons.dataFormat.Report;
+import hk.samwong.roomservice.commons.dataFormat.Report;
 
 import dao.ClassifierDAO;
 

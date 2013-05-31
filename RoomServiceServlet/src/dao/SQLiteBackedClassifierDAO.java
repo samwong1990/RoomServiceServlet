@@ -23,10 +23,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 import com.google.common.collect.Sets;
-import com.samwong.hk.roomservice.api.commons.dataFormat.AuthenticationDetails;
-import com.samwong.hk.roomservice.api.commons.dataFormat.RoomStatistic;
-import com.samwong.hk.roomservice.api.commons.dataFormat.TrainingData;
-import com.samwong.hk.roomservice.api.commons.dataFormat.WifiInformation;
+import hk.samwong.roomservice.commons.dataFormat.AuthenticationDetails;
+import hk.samwong.roomservice.commons.dataFormat.RoomStatistic;
+import hk.samwong.roomservice.commons.dataFormat.TrainingData;
+import hk.samwong.roomservice.commons.dataFormat.WifiInformation;
 
 public class SQLiteBackedClassifierDAO implements ClassifierDAO {
 	private static Logger log = Logger

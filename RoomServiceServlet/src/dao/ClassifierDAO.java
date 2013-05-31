@@ -6,9 +6,9 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
-import com.samwong.hk.roomservice.api.commons.dataFormat.AuthenticationDetails;
-import com.samwong.hk.roomservice.api.commons.dataFormat.RoomStatistic;
-import com.samwong.hk.roomservice.api.commons.dataFormat.TrainingData;
+import hk.samwong.roomservice.commons.dataFormat.AuthenticationDetails;
+import hk.samwong.roomservice.commons.dataFormat.RoomStatistic;
+import hk.samwong.roomservice.commons.dataFormat.TrainingData;
 
 import net.sf.javaml.core.Instance;
 

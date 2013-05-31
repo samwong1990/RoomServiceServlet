@@ -2,7 +2,7 @@ package customClassifier;
 
 import java.util.Map;
 
-import com.samwong.hk.roomservice.api.commons.dataFormat.Report;
+import hk.samwong.roomservice.commons.dataFormat.Report;
 
 import net.sf.javaml.core.Instance;
 

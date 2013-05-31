@@ -8,9 +8,9 @@ import java.util.Map;
 
 import net.sf.javaml.core.Instance;
 
-import com.samwong.hk.roomservice.api.commons.dataFormat.AuthenticationDetails;
-import com.samwong.hk.roomservice.api.commons.dataFormat.Report;
-import com.samwong.hk.roomservice.api.commons.parameterEnums.Classifier;
+import hk.samwong.roomservice.commons.dataFormat.AuthenticationDetails;
+import hk.samwong.roomservice.commons.dataFormat.Report;
+import hk.samwong.roomservice.commons.parameterEnums.Classifier;
 
 import customClassifier.CustomClassifier;
 import customClassifier.KNN;
