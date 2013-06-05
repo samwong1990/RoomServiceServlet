@@ -6,6 +6,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v7.0">
 		<attributes>
 			<attribute name="owner.project.facets" value="jst.web"/>
@@ -55,5 +56,37 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/RoomServiceCommons"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/drives_libs/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-api-client-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-api-client-android-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-api-client-appengine-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-api-client-java6-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-api-client-servlet-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-http-client-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-http-client-android-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-http-client-appengine-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-http-client-gson-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-http-client-jackson-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-http-client-jackson2-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-oauth-client-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-oauth-client-appengine-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-oauth-client-java6-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-oauth-client-java7-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-oauth-client-jetty-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-oauth-client-servlet-1.15.0-rc.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/gson-2.1.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/httpclient-4.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/httpcore-4.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/jackson-core-2.1.3.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/jackson-core-asl-1.9.11.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/jdo2-api-2.3-eb.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/jetty-6.1.26.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/jetty-util-6.1.26.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/jsr305-1.3.9.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/protobuf-java-2.4.1.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/transaction-api-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/xpp3-1.1.4c.jar"/>
+	<classpathentry kind="lib" path="lib/drives_libs/google-api-services-drive-v2-rev76-1.15.0-rc.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
