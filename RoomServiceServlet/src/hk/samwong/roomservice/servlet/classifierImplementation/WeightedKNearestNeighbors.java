@@ -19,6 +19,8 @@ import net.sf.javaml.distance.EuclideanDistance;
  * aren't protected, I just copied the whole thing over and modify the
  * classDistribution method (one line)
  * 
+ * TODO: Make use of recency and trustworthiness metrics outlined in the report
+ * 
  * @author s@mwong.hk
  * 
  */

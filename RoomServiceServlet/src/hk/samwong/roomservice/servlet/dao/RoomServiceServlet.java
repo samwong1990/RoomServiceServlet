@@ -6,7 +6,6 @@ import hk.samwong.roomservice.commons.dataFormat.Report;
 import hk.samwong.roomservice.commons.dataFormat.Response;
 import hk.samwong.roomservice.commons.dataFormat.ResponseWithListOfRooms;
 import hk.samwong.roomservice.commons.dataFormat.ResponseWithReports;
-import hk.samwong.roomservice.commons.dataFormat.RoomStatistic;
 import hk.samwong.roomservice.commons.dataFormat.TrainingData;
 import hk.samwong.roomservice.commons.dataFormat.WifiInformation;
 import hk.samwong.roomservice.commons.helper.InstanceFriendlyGson;
@@ -137,15 +136,19 @@ public class RoomServiceServlet extends HttpServlet {
 			log.info(auenticationDetails);
 
 			if (operation.equals(Operation.GET_LIST_OF_ROOMS.toString())) {
-				List<String> roomList = fingerprintsDAO
+				List<String> uuidList = fingerprintsDAO
 						.getRoomList(auenticationDetails);
-				ResponseWithListOfRooms result = new ResponseWithListOfRooms().withRoomList(roomList);
+				List<String> aliasList = new ArrayList<String>();
+				for(String room : uuidList){
+					aliasList.add(fingerprintsDAO.getLabelByUUID(room).getAlias());
+				}
+				ResponseWithListOfRooms result = new ResponseWithListOfRooms().withRoomList(aliasList);
 				out.print(new Gson().toJson(result));
 				return;
 			}
 		} catch (Exception e) {
-			Response errorResponse = new Response().withReturnCode(
-					ReturnCode.ILLEGAL_ARGUMENT).withExplanation(e.toString());
+			Response errorResponse = new Response().setReturnCode(
+					ReturnCode.ILLEGAL_ARGUMENT).setExplanation(e.toString());
 			out.print(new Gson().toJson(errorResponse));
 			return;
 		} finally {
@@ -214,10 +217,12 @@ public class RoomServiceServlet extends HttpServlet {
 				TrainingData trainingData = InstanceFriendlyGson.gson.fromJson(
 						json, new TypeToken<TrainingData>() {
 						}.getType());
+				
+				String UUID = fingerprintsDAO.insertNewRoom(trainingData.getRoom());
 				for (WifiInformation wifiInformation : trainingData.getDatapoints()) {
 					fingerprintsDAO.saveInstance(authenticationDetails,
 							Deserializer.wifiInformationToInstance(
-							wifiInformation, fingerprintsDAO), trainingData.getRoom()
+							wifiInformation, fingerprintsDAO), UUID
 							);
 				}
 				out.print(jsonFeedback(ReturnCode.OK,
@@ -226,7 +231,7 @@ public class RoomServiceServlet extends HttpServlet {
 			}
 		} catch (Exception e) {
 			Response errorResponse = new ResponseWithReports()
-			.withReturnCode(ReturnCode.ILLEGAL_ARGUMENT).withExplanation(e.toString());
+			.setReturnCode(ReturnCode.ILLEGAL_ARGUMENT).setExplanation(e.toString());
 			out.print(new Gson().toJson(errorResponse));
 			return;
 		} finally {
@@ -267,14 +272,14 @@ public class RoomServiceServlet extends HttpServlet {
 				fingerprintsDAO.saveInstance(authenticationDetails, instance, room);
 				out.print(jsonFeedback(ReturnCode.OK, "Instance has been saved"));
 				return;
-			} else if(operation.equals(Operation.UPLOAD_STATISTICS.toString())){
-				log.info("Saving statistics");
-				String listOfStatJson = Deserializer.getSingleParameter(parameters,
-						ParameterKey.VALIDATION_STATISTICS);
-				List<RoomStatistic> stats = new Gson().fromJson(listOfStatJson, new TypeToken<List<RoomStatistic>>() {
-						}.getType());
-				((SQLiteBackedFingerprintsDAO) fingerprintsDAO).saveStatistics(stats);
-				out.print(jsonFeedback(ReturnCode.OK, "Saved statistics"));
+//			} else if(operation.equals(Operation.UPLOAD_STATISTICS.toString())){
+//				log.info("Saving statistics");
+//				String listOfStatJson = Deserializer.getSingleParameter(parameters,
+//						ParameterKey.VALIDATION_STATISTICS);
+//				List<RoomStatistic> stats = new Gson().fromJson(listOfStatJson, new TypeToken<List<RoomStatistic>>() {
+//						}.getType());
+//				((SQLiteBackedFingerprintsDAO) fingerprintsDAO).saveStatistics(stats);
+//				out.print(jsonFeedback(ReturnCode.OK, "Saved statistics"));
 			} else {
 				out.print(jsonFeedback(ReturnCode.NO_RESPONSE,
 						"Supported Operations: UPLOAD_TRAINING_DATA & CONFIRM_VALID_CLASSIFICATION."));
@@ -292,7 +297,7 @@ public class RoomServiceServlet extends HttpServlet {
 
 	private String jsonFeedback(ReturnCode returnCode, String explanation) {
 		String json = new Gson().toJson(
-				new Response().withExplanation(explanation).withReturnCode(
+				new Response().setExplanation(explanation).setReturnCode(
 						returnCode), new TypeToken<Response>() {
 				}.getType());
 		log.info("json response:" + json);

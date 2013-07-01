@@ -2,7 +2,9 @@ package hk.samwong.roomservice.servlet.dao;
 
 
 import hk.samwong.roomservice.commons.dataFormat.AuthenticationDetails;
+import hk.samwong.roomservice.commons.dataFormat.Label;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 
@@ -46,7 +48,7 @@ public abstract class FingerprintsDAO {
 	 * @param instance
 	 * @param room
 	 */
-	public abstract void saveInstance(AuthenticationDetails authenticationDetails, Instance instance, String room);
+	public abstract void saveInstance(AuthenticationDetails authenticationDetails, Instance instance, String uuid);
 	
 	/**
 	 * Can only delete instances that are created by the same user.
@@ -55,5 +57,9 @@ public abstract class FingerprintsDAO {
 	 * @throws IllegalAccessException
 	 */
 	public abstract void deleteClassification(AuthenticationDetails authenticationDetails, Instance instance) throws IllegalAccessException;
+	
+	public abstract Label getLabelByUUID(String UUID);
+
+	public abstract String insertNewRoom(String label) throws SQLException;
 		
 }

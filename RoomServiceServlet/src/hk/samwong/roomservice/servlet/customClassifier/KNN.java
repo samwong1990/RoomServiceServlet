@@ -13,6 +13,7 @@ import net.sf.javaml.core.Instance;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import hk.samwong.roomservice.commons.dataFormat.Label;
 import hk.samwong.roomservice.commons.dataFormat.Report;
 import hk.samwong.roomservice.servlet.dao.FingerprintsDAO;
 
@@ -35,23 +36,27 @@ public class KNN implements CustomClassifier {
 		net.sf.javaml.classification.Classifier knn = new KNearestNeighbors(5);
 		knn.buildClassifier(dataset);
 
-		Report report = new Report(instance);
-		report.setRoom((String) knn.classify(instance));
-		report.setAlgorithm("KNN");
+		String bestMatchUUID = (String) knn.classify(instance);
+		Label bestMatchLabel = fingerprintsDAO.getLabelByUUID(bestMatchUUID);
 		log.info("knn notes:" + knn.classDistribution(instance));
+		
 		StringBuilder sb = new StringBuilder();
-		Set<String> otherCandidates = new HashSet<String>();
-		for (Entry<Object, Double> room : knn.classDistribution(instance)
+		Set<Label> otherCandidates = new HashSet<Label>();
+		for (Entry<Object, Double> uuidEntry : knn.classDistribution(instance)
 				.entrySet()) {
-			if (room.getValue() > 0) {
-				if (!StringUtils.equals(room.getKey().toString(),
-						report.getRoom())) {
-					otherCandidates.add(room.toString());
+			if (uuidEntry.getValue() > 0) {
+				if (!StringUtils.equals(uuidEntry.getKey().toString(),
+						bestMatchUUID)) {
+					Label nextMatch = fingerprintsDAO.getLabelByUUID(uuidEntry.getKey().toString());
+					otherCandidates.add(nextMatch);
+					sb.append(nextMatch.getAlias() + ":" + String.format("%5f",uuidEntry.getValue()));
+				}else{
+					sb.append(bestMatchLabel.getAlias() + ":" + String.format("%5f",uuidEntry.getValue()));
 				}
-				sb.append(room.getKey() + ":" + room.getValue());
+				sb.append("|");
 			}
 		}
-		report.setOtherCandidates(otherCandidates);
+		Report report = new Report(instance).setBestMatch(bestMatchLabel).setAlgorithm("KNN").setOtherCandidates(otherCandidates).setNotes(sb.toString());
 		return report;
 	}
 

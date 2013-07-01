@@ -13,6 +13,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 
+import hk.samwong.roomservice.commons.dataFormat.Label;
 import hk.samwong.roomservice.commons.dataFormat.Report;
 import hk.samwong.roomservice.servlet.classifierImplementation.WeightedKNearestNeighbors;
 import hk.samwong.roomservice.servlet.dao.FingerprintsDAO;
@@ -35,27 +36,32 @@ public class WKNN implements CustomClassifier {
 		net.sf.javaml.classification.Classifier wknn = new WeightedKNearestNeighbors(
 				5);
 		wknn.buildClassifier(dataset);
-		Report report = new Report(instance).withAlgorithm("WKNN");
-		report.setRoom((String) wknn.classify(instance));
+		
+		String bestMatchUUID = (String) wknn.classify(instance);
+		Label bestMatchLabel = fingerprintsDAO.getLabelByUUID(bestMatchUUID);
 		Map<Object, Double> classDistribution = wknn.classDistribution(instance);
 		log.info("wknn notes:" + classDistribution);
 		
 		// go through the list to see if there is any other suggestion
 		// sb is building a custom message to give a report summary
 		
-		Set<String> otherCandidates = new HashSet<String>();
+		Set<Label> otherCandidates = new HashSet<Label>();
 		StringBuilder sb = new StringBuilder();
-		for (Entry<Object, Double> room : classDistribution
+		for (Entry<Object, Double> uuidEntry : classDistribution
 				.entrySet()) {
-			if (room.getValue() > 0) {
-				if (!StringUtils.equals(room.getKey().toString(),
-						report.getRoom())) {
-					otherCandidates.add(room.toString());
+			if (uuidEntry.getValue() > 0) {
+				if (!StringUtils.equals(uuidEntry.getKey().toString(),
+						bestMatchUUID)) {
+					Label nextMatch = fingerprintsDAO.getLabelByUUID(uuidEntry.getKey().toString());
+					otherCandidates.add(nextMatch);
+					sb.append(nextMatch.getAlias() + ":" + String.format("%5f",uuidEntry.getValue()));
+				}else{
+					sb.append(bestMatchLabel.getAlias() + ":" + String.format("%5f",uuidEntry.getValue()));
 				}
-				sb.append(room.getKey() + ":" + room.getValue());
+				sb.append("|");
 			}
 		}
-		report.setOtherCandidates(otherCandidates);
+		Report report = new Report(instance).setAlgorithm("WKNN").setBestMatch(bestMatchLabel).setOtherCandidates(otherCandidates).setNotes(sb.toString());
 		return report;
 	}
 }
